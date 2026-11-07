@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LPG Pumping SCADA Field Guide (Dubai, AGAC.ae)</title>
+<meta name="description" content="Field engineering, design, instrumentation, PLC logic, and ISA-101 SCADA standards for LPG Pumping systems in Dubai UAE.">
+<meta name="theme-color" content="#2b3036">
+<link rel="canonical" href="https://githubbest729.github.io/scada-LPG-Pumping-guide/">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="LPG SCADA">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://githubbest729.github.io/scada-LPG-Pumping-guide/">
+<meta property="og:title" content="LPG Pumping SCADA Field Engineering Guide (Dubai - AGAC.ae)">
+<meta property="og:description" content="Field engineering, design, instrumentation, PLC logic, and ISA-101 SCADA standards for LPG Pumping systems in Dubai UAE.">
+<meta property="og:image" content="https://githubbest729.github.io/scada-LPG-Pumping-guide/images/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="LPG Pumping SCADA Field Engineering Guide (Dubai - AGAC.ae)">
+<meta name="twitter:description" content="Field engineering, design, instrumentation, PLC logic, and ISA-101 SCADA standards for LPG Pumping systems in Dubai UAE.">
+<meta name="twitter:image" content="https://githubbest729.github.io/scada-LPG-Pumping-guide/images/og-image.png">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<header class="top" id="top">
+  <div class="top-row">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><rect x="2" y="10" width="28" height="12" rx="6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 4c1 3 4 4 4 7a4 4 0 0 1-8 0c0-1.4.6-2.2 1.2-3C14 9 15 7 16 4z" fill="var(--warn)"/></svg>
+      <div><h1>LPG SCADA</h1><p>Field guide &middot; Dubai UAE</p></div>
+    </div>
+    <span class="badge" id="sync-badge" role="status" aria-live="polite">Online</span>
+  </div>
+  <div class="actions" role="toolbar" aria-label="Utilities">
+    <button type="button" id="btn-sun" aria-pressed="false" title="Direct sunlight mode">Sunlight</button>
+    <button type="button" id="btn-battery" aria-pressed="false" title="Battery saver (AMOLED black)">Battery</button>
+    <button type="button" id="btn-share" title="Share this guide">Share</button>
+    <button type="button" id="btn-install" title="Install on your device">Install</button>
+    <button type="button" id="btn-zip" title="Download project ZIP">ZIP</button>
+  </div>
+  <nav class="tabs" role="tablist" aria-label="Guide sections">
+    <button role="tab" id="t-design" aria-controls="design" data-tab="design" aria-selected="true">Design</button>
+    <button role="tab" id="t-plc" aria-controls="plc" data-tab="plc" aria-selected="false">PLC</button>
+    <button role="tab" id="t-scada" aria-controls="scada" data-tab="scada" aria-selected="false">SCADA</button>
+    <button role="tab" id="t-tools" aria-controls="tools" data-tab="tools" aria-selected="false">Tools</button>
+  </nav>
+</header>
+
+<div class="install-banner" id="install-banner" hidden>
+  <div id="install-text"></div>
+  <div class="row"><button type="button" id="install-go" class="primary">Install app</button><button type="button" id="install-close">Dismiss</button></div>
+</div>
+
+<main>
+<!-- ============ TAB 1: DESIGN ============ -->
+<section id="design" class="panel" role="tabpanel" aria-labelledby="t-design">
+  <h2>System design and P&amp;ID architecture</h2>
+  <p class="lede">Bulk LPG transfer skid for Dubai. Use this as a design checklist, then confirm every value against the project specification and the authority having jurisdiction.</p>
+
+  <div class="card">
+    <h3>Process flow</h3>
+    <ol class="flow-list">
+      <li><b>Bulk storage.</b> Mounded or above-ground bullet tanks. Liquid outlet through an internal excess-flow valve, then a fail-closed suction ESDV.</li>
+      <li><b>Pump.</b> Positive displacement (sliding vane, such as Corken) or regenerative turbine (such as Blackmer). Mount below the tank liquid level to keep suction head positive.</li>
+      <li><b>Bypass DPV.</b> Differential pressure valve returns excess flow to the tank vapor space when discharge pressure exceeds tank pressure by the set differential (typically 1.0 to 1.5 times the pump relief setting minus margin; confirm with the pump datasheet).</li>
+      <li><b>Vapor return.</b> Equalising line to the receiving vessel or tanker, with excess-flow check valve.</li>
+      <li><b>Discharge.</b> Pneumatic fail-closed ESDV, hydrostatic relief between closed valves, then the filling or distribution header.</li>
+    </ol>
+    <p class="note">Every ESDV is air-to-open, spring-to-close. Loss of air, power or signal drives the valve closed.</p>
+  </div>
+
+  <div class="card">
+    <h3>UAE regulatory and hazardous area classification</h3>
+    <ul>
+      <li><b>Authority.</b> Dubai Civil Defence (DCD) approves design, equipment and final inspection. Follow the UAE Fire and Life Safety Code of Practice and the current AGAC requirements for LPG storage and distribution.</li>
+      <li><b>Hazardous area.</b> Classify to IEC 60079-10-1. Typical outcome: Zone 1 around pump seals, vents and flanged connections; Zone 2 in the surrounding open-air envelope. Class I Division 1 and 2 apply where NEC/NFPA documents are the project basis.</li>
+      <li><b>Equipment.</b> ATEX or IECEx certified Ex d / Ex e / Ex i gear matched to gas group IIA (propane, butane) and temperature class T2 or better. Dubai summer ambient up to 52 &deg;C must be inside the certificate ambient range.</li>
+      <li><b>Codes.</b> NFPA 58 (LP-Gas Code) for storage, transfer and spacing. NFPA 54 (National Fuel Gas Code) for downstream piping and appliances, including high-rise commercial and residential distribution.</li>
+    </ul>
+    <h4>DCD approval checklist (saved on this device)</h4>
+    <div class="progress" aria-hidden="true"><div id="dcd-bar"></div></div>
+    <p class="note" id="dcd-count">0 of 10 complete</p>
+    <ul class="checks" id="dcd-list">
+      <li><label><input type="checkbox" data-k="1"> Hazardous area classification drawing signed by a competent engineer</label></li>
+      <li><label><input type="checkbox" data-k="2"> Ex equipment certificates (ATEX/IECEx) match zone, gas group, T-class</label></li>
+      <li><label><input type="checkbox" data-k="3"> P&amp;ID and cause and effect matrix submitted and approved</label></li>
+      <li><label><input type="checkbox" data-k="4"> Separation distances verified (tank to boundary, buildings, ignition sources)</label></li>
+      <li><label><input type="checkbox" data-k="5"> Fixed gas detectors at pump, manifold and low points; flame detectors covering the skid</label></li>
+      <li><label><input type="checkbox" data-k="6"> Fire water, deluge or cooling system and FAP interface tested</label></li>
+      <li><label><input type="checkbox" data-k="7"> Every ESDV stroke-tested, closing time recorded</label></li>
+      <li><label><input type="checkbox" data-k="8"> Loop checks and trip tests witnessed, records signed</label></li>
+      <li><label><input type="checkbox" data-k="9"> Earthing, bonding and lightning protection test certificates</label></li>
+      <li><label><input type="checkbox" data-k="10"> Emergency plan, signage and operator training records on site</label></li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>Instrumentation selection</h3>
+    <div class="scroll"><table>
+      <thead><tr><th>Tag</th><th>Device</th><th>Selection notes</th></tr></thead>
+      <tbody>
+        <tr><td>PT</td><td>Pressure transmitter, 4-20 mA HART</td><td>SIL 2/3 certified version for trip use. Range to 1.5 times relief setting. Diaphragm seal rated for liquid LPG.</td></tr>
+        <tr><td>PDS / PDT</td><td>Differential pressure switch or transmitter</td><td>Across pump for DP high trip and strainer blockage. Set well below relief valve.</td></tr>
+        <tr><td>LT</td><td>Radar or servo tank gauge</td><td>Radar for process level; independent high-high level switch (LSHH) for overfill protection.</td></tr>
+        <tr><td>FT</td><td>Ultrasonic or Coriolis flowmeter</td><td>Verify two-phase tolerance. Flow-low supports dry-run protection.</td></tr>
+        <tr><td>GD</td><td>Combustible gas detector, 0-100 %LEL</td><td>Catalytic bead or infrared. Infrared preferred for LPG outdoors. Mount low: LPG vapor is heavier than air.</td></tr>
+        <tr><td>FD</td><td>Flame detector UV/IR</td><td>Field-of-view study per skid. Sunlight and hot-surface immunity for Dubai.</td></tr>
+        <tr><td>TT</td><td>RTD, Pt100</td><td>Liquid and ambient temperature for vapor pressure compensation.</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<!-- ============ TAB 2: PLC ============ -->
+<section id="plc" class="panel" role="tabpanel" aria-labelledby="t-plc" hidden>
+  <h2>PLC / RTU logic and programming</h2>
+  <p class="lede">Sequence of operations, ESD cause and effect, and fail-safe pump control code.</p>
+
+  <div class="card">
+    <h3>Sequence of operations</h3>
+    <ol class="flow-list">
+      <li><b>Pre-start permissives.</b> No ESD or FAP signal, no gas Level 1, suction and discharge ESDV open, tank level above low-level permissive, motor overload healthy.</li>
+      <li><b>Auto-venting.</b> Open the vapor vent or bleed valve briefly to clear vapor from the pump casing, close, confirm suction pressure is stable.</li>
+      <li><b>Start.</b> Command run, wait for motor feedback within 3 s, then supervise DP and flow.</li>
+      <li><b>Lead-lag.</b> Alternate the lead pump on each stop. Start the lag pump if flow demand stays unmet. Fail over if one pump is not ready.</li>
+      <li><b>Dry-run protection.</b> Trip on low motor current or low flow with run command for longer than the dry-run timer (typically 5 s).</li>
+      <li><b>Minimum flow.</b> DPV bypass handles minimum flow. PLC trips the pump if bypass runs for longer than the allowed time with a closed discharge.</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h3>Safety interlocks and ESD cause and effect</h3>
+    <p class="note">Gas L1 = 20 %LEL alarm. Gas L2 = 40 %LEL trip. Hardwired trips are preferred over network signals. Scroll sideways inside the table.</p>
+    <div class="scroll ce"><table>
+      <thead><tr><th>Cause</th><th>Alarm</th><th>Pump trip</th><th>Suction ESDV</th><th>Discharge ESDV</th><th>Deluge</th><th>FAP</th></tr></thead>
+      <tbody>
+        <tr><th>GD Level 1 (20 %LEL)</th><td>&#9679;</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td></tr>
+        <tr><th>GD Level 2 (40 %LEL)</th><td>&#9679;</td><td>&#9679;</td><td>&#9679;</td><td>&#9679;</td><td>&ndash;</td><td>&#9679;</td></tr>
+        <tr><th>PSHH discharge pressure</th><td>&#9679;</td><td>&#9679;</td><td>&ndash;</td><td>&#9679;</td><td>&ndash;</td><td>&ndash;</td></tr>
+        <tr><th>LSLL tank low-low level</th><td>&#9679;</td><td>&#9679;</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td></tr>
+        <tr><th>DPSH pump DP high</th><td>&#9679;</td><td>&#9679;</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td></tr>
+        <tr><th>Emergency stop PB</th><td>&#9679;</td><td>&#9679;</td><td>&#9679;</td><td>&#9679;</td><td>&ndash;</td><td>&#9679;</td></tr>
+        <tr><th>Fire alarm panel (dry contact)</th><td>&#9679;</td><td>&#9679;</td><td>&#9679;</td><td>&#9679;</td><td>&#9679;</td><td>&#9679;</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <div class="card">
+    <h3>Structured text: fail-safe pump control</h3>
+    <p class="note">Debounce timers filter noise. Latched first-out fault code holds until the cause has cleared and a valid reset is received.</p>
+    <div class="code-head"><b>FB_LpgPumpCtrl</b><button type="button" data-copy="st-pump">Copy</button></div>
+    <pre class="code"><code id="st-pump"></code></pre>
+    <div class="code-head"><b>FC_LeadLag</b><button type="button" data-copy="st-leadlag">Copy</button></div>
+    <pre class="code"><code id="st-leadlag"></code></pre>
+  </div>
+</section>
+
+<!-- ============ TAB 3: SCADA ============ -->
+<section id="scada" class="panel" role="tabpanel" aria-labelledby="t-scada" hidden>
+  <h2>SCADA / HMI and alarm philosophy</h2>
+
+  <div class="la" id="la" aria-live="polite">
+    <div class="la-top"><span class="la-dot" id="la-dot"></span><b id="la-state">IDLE</b><span id="la-time" class="la-time">--:--</span></div>
+    <div class="la-grid">
+      <div><small>Differential</small><b id="la-dp">0.0 bar</b></div>
+      <div><small>Flow</small><b id="la-flow">0.0 m&sup3;/h</b></div>
+      <div><small>ESD</small><b id="la-esd">NORMAL</b></div>
+    </div>
+    <small class="la-cap">Active pumping monitor. Lock Screen / Dynamic Island style card for iOS.</small>
+  </div>
+
+  <div class="card">
+    <h3>Live mimic (simulation)</h3>
+    <svg id="mimic" viewBox="0 0 360 230" role="img" aria-label="LPG pumping skid mimic">
+      <g class="pipes">
+        <path id="p-suction" class="pipe" d="M92 120 H150"/>
+        <path id="p-disch" class="pipe" d="M190 120 H300"/>
+        <path id="p-bypass" class="pipe" d="M215 120 V70 H70 V100"/>
+        <path id="p-vapor" class="pipe thin" d="M60 80 V40 H300 V120"/>
+      </g>
+      <g class="flowlines">
+        <path id="f-suction" class="flow" d="M92 120 H150"/>
+        <path id="f-disch" class="flow" d="M190 120 H300"/>
+        <path id="f-bypass" class="flow bypass" d="M215 120 V70 H70 V100"/>
+      </g>
+      <rect id="tank" x="20" y="100" width="72" height="50" rx="25" class="eq"/>
+      <text x="56" y="130" class="lbl" text-anchor="middle">T-101</text>
+      <circle id="pump" cx="170" cy="120" r="20" class="eq"/>
+      <text x="170" y="124" class="lbl" text-anchor="middle">P-101</text>
+      <rect id="esdv-s" x="118" y="112" width="16" height="16" class="valve"/>
+      <text x="126" y="146" class="tag" text-anchor="middle">ESDV-1</text>
+      <rect id="esdv-d" x="252" y="112" width="16" height="16" class="valve"/>
+      <text x="260" y="146" class="tag" text-anchor="middle">ESDV-2</text>
+      <polygon id="dpv" points="215,112 223,120 215,128 207,120" class="valve"/>
+      <text x="215" y="144" class="tag" text-anchor="middle">DPV</text>
+      <circle cx="150" cy="82" r="13" class="bubble"/><text x="150" y="80" class="tag" text-anchor="middle">PT</text><text x="150" y="90" class="tag" text-anchor="middle">101</text>
+      <circle cx="280" cy="82" r="13" class="bubble"/><text x="280" y="80" class="tag" text-anchor="middle">PT</text><text x="280" y="90" class="tag" text-anchor="middle">102</text>
+      <circle cx="110" cy="184" r="13" class="bubble"/><text x="110" y="182" class="tag" text-anchor="middle">GD</text><text x="110" y="192" class="tag" text-anchor="middle">101</text>
+      <text x="150" y="68" class="val" text-anchor="middle" id="m-ps">0.0</text>
+      <text x="280" y="68" class="val" text-anchor="middle" id="m-pd">0.0</text>
+      <text x="110" y="210" class="val" text-anchor="middle" id="m-gd">0 %LEL</text>
+      <text x="300" y="190" class="val" text-anchor="end" id="m-dp">DP 0.0 bar</text>
+      <text x="300" y="206" class="val" text-anchor="end" id="m-esd">ESD NORMAL</text>
+    </svg>
+    <div class="row sim-btns">
+      <button type="button" id="btn-start" class="hold primary" data-hold><span class="hold-fill"></span><span class="hold-text">Hold 1.5 s: Start pump</span></button>
+      <button type="button" id="btn-stop">Stop pump</button>
+      <button type="button" id="btn-estop" class="danger">E-STOP</button>
+      <button type="button" id="btn-reset" class="hold" data-hold><span class="hold-fill"></span><span class="hold-text">Hold 1.5 s: ESD reset</span></button>
+    </div>
+    <p class="note" id="sim-msg" role="status"></p>
+    <h4>Pre-start permissives</h4>
+    <ul class="perm" id="perm-list"></ul>
+    <div class="sliders">
+      <label>Gas reading: <b id="v-lel">0</b> %LEL<input type="range" id="s-lel" min="0" max="100" step="1" value="0"></label>
+      <label>Pump DP: <b id="v-dp">7.0</b> bar<input type="range" id="s-dp" min="0" max="12" step="0.1" value="7"></label>
+      <label>Tank level: <b id="v-lvl">65</b> %<input type="range" id="s-lvl" min="0" max="100" step="1" value="65"></label>
+      <label>Ambient: <b id="v-amb">40</b> &deg;C<input type="range" id="s-amb" min="10" max="60" step="1" value="40"></label>
+    </div>
+    <canvas id="strip" width="640" height="120" aria-label="Pressure strip chart"></canvas>
+    <p class="note">Strip chart: suction (thin) and discharge (thick) pressure, bar g.</p>
+  </div>
+
+  <div class="card">
+    <h3>Active alarms</h3>
+    <div id="alarm-list" class="alarms"></div>
+    <div class="row"><span id="shelf-count" class="note">0 shelved</span><button type="button" id="btn-unshelve">Unshelve all</button></div>
+  </div>
+
+  <div class="card">
+    <h3>High-performance HMI (ISA-101)</h3>
+    <p>The screen is neutral gray. Colour only means something is wrong or needs action. Normal equipment is gray, so abnormal states stand out in bright sunlight.</p>
+    <div class="swatches">
+      <div><i class="sw s-warn"></i>Amber<br><small>Warning</small></div>
+      <div><i class="sw s-alarm"></i>Red<br><small>Danger or trip</small></div>
+      <div><i class="sw s-op"></i>Blue<br><small>Operator action</small></div>
+      <div><i class="sw s-maint"></i>Cyan<br><small>Maintenance</small></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Alarm rationalization (ISA-18.2)</h3>
+    <div class="scroll"><table>
+      <thead><tr><th>Priority</th><th>Shape</th><th>Meaning</th><th>Example</th><th>Response</th></tr></thead>
+      <tbody>
+        <tr><td>1 Critical</td><td><i class="shp oct"></i></td><td>Immediate action, safety or environment at risk</td><td>Gas L2, PSHH, ESD</td><td>Under 1 min. Cannot be shelved.</td></tr>
+        <tr><td>2 High</td><td><i class="shp tri"></i></td><td>Prompt action to avoid a trip</td><td>Gas L1, DPSH, LSLL</td><td>Under 5 min</td></tr>
+        <tr><td>3 Advisory</td><td><i class="shp sq"></i></td><td>Maintenance or information</td><td>Transmitter fault, strainer DP</td><td>Next shift</td></tr>
+      </tbody>
+    </table></div>
+    <ul>
+      <li><b>Deadband.</b> Clear an alarm only after the value moves back past a deadband (for gas L1: set 20, clear 15 %LEL) to stop chattering.</li>
+      <li><b>On-delay.</b> 1 to 3 s on analog alarms removes noise without hiding real events.</li>
+      <li><b>Shelving.</b> Operator-initiated, time-limited, logged. Not for Priority 1.</li>
+      <li><b>Target rates.</b> Under 6 alarms per operator per hour on average, under 10 in the first 10 minutes of an upset.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ TAB 4: TOOLS ============ -->
+<section id="tools" class="panel" role="tabpanel" aria-labelledby="t-tools" hidden>
+  <h2>Engineering calculators</h2>
+  <p class="lede">Tap a preset to fill the fields. All inputs are limited to realistic physical ranges.</p>
+
+  <div class="card" id="calc-vp">
+    <h3>LPG vapor pressure and temperature</h3>
+    <p class="sub">How hard the product pushes against the tank at a given temperature.</p>
+    <div class="row"><button type="button" data-preset="vp" data-c3="50" data-t="52">Dubai summer, 50/50</button><button type="button" data-preset="vp" data-c3="80" data-t="15">Winter propane mix</button></div>
+    <div class="fields">
+      <label>Propane in blend (% volume, 0 to 100)<input type="number" inputmode="decimal" id="vp-c3" value="50" min="0" max="100" step="1"></label>
+      <label>Liquid temperature (&deg;C, 10.0 to 60.0)<input type="number" inputmode="decimal" id="vp-t" value="52" min="10" max="60" step="0.5"></label>
+    </div>
+    <div class="result" id="vp-out" aria-live="polite"></div>
+  </div>
+
+  <div class="card" id="calc-npsh">
+    <h3>Pump NPSH and cavitation margin</h3>
+    <p class="sub">Whether the pump gets enough liquid pressure above boiling to avoid vapor bubbles.</p>
+    <div class="row"><button type="button" data-preset="npsh" data-c3="50" data-t="52" data-tl="52.3" data-h="3" data-hf="0.5" data-r="0.8">Dubai summer Corken Z3500</button><button type="button" data-preset="npsh" data-c3="80" data-t="18" data-tl="18.1" data-h="2" data-hf="0.4" data-r="0.6">Winter propane mix</button></div>
+    <p class="note">Preset NPSHr and piping values are illustrative. Enter the figures from your pump curve and line sizing.</p>
+    <div class="fields">
+      <label>Propane in blend (% volume)<input type="number" inputmode="decimal" id="np-c3" value="50" min="0" max="100" step="1"></label>
+      <label>Tank liquid temperature (&deg;C)<input type="number" inputmode="decimal" id="np-t" value="52" min="10" max="60" step="0.5"></label>
+      <label>Pump inlet liquid temperature (&deg;C)<input type="number" inputmode="decimal" id="np-tl" value="52.3" min="10" max="60" step="0.1"></label>
+      <label>Liquid head above pump (m)<input type="number" inputmode="decimal" id="np-h" value="3" min="0" max="50" step="0.1"></label>
+      <label>Suction line friction loss (m)<input type="number" inputmode="decimal" id="np-hf" value="0.5" min="0" max="50" step="0.1"></label>
+      <label>NPSH required, from pump curve (m)<input type="number" inputmode="decimal" id="np-r" value="0.8" min="0" max="20" step="0.1"></label>
+      <label>Specific gravity (0.500 to 2.000, blank = auto)<input type="number" inputmode="decimal" id="np-sg" value="" min="0.5" max="2" step="0.001" placeholder="auto"></label>
+      <label>Thermal expansion coefficient (0.0001 to 0.0025 per &deg;C)<input type="number" inputmode="decimal" id="np-b" value="0.0020" min="0.0001" max="0.0025" step="0.0001"></label>
+    </div>
+    <div class="result" id="np-out" aria-live="polite"></div>
+  </div>
+
+  <div class="card" id="calc-ma">
+    <h3>4-20 mA scaling and loop calibrator</h3>
+    <p class="sub">Convert between process value, loop current and PLC raw counts. Type in any field.</p>
+    <div class="row"><button type="button" data-preset="ma" data-u="bar" data-l="0" data-h="25" data-v="12.5">Pressure 0-25 bar</button><button type="button" data-preset="ma" data-u="%LEL" data-l="0" data-h="100" data-v="20">Gas 20 %LEL</button><button type="button" data-preset="ma" data-u="%" data-l="0" data-h="100" data-v="65">Tank level</button></div>
+    <div class="fields">
+      <label>Unit<select id="ma-unit"><option>bar</option><option>mbar</option><option>&deg;C</option><option>%LEL</option><option>%</option></select></label>
+      <label>Range low (LRV)<input type="number" inputmode="decimal" id="ma-lrv" value="0" step="any"></label>
+      <label>Range high (URV)<input type="number" inputmode="decimal" id="ma-urv" value="25" step="any"></label>
+      <label>Process value<input type="number" inputmode="decimal" id="ma-eng" value="12.5" step="any"></label>
+      <label>Loop current (mA, 0.00 to 25.00)<input type="number" inputmode="decimal" id="ma-ma" value="12" min="0" max="25" step="0.01"></label>
+      <label>PLC raw counts (27648 = 20 mA)<input type="number" inputmode="numeric" id="ma-cnt" value="13824" step="1"></label>
+    </div>
+    <div class="result" id="ma-out" aria-live="polite"></div>
+  </div>
+
+  <p class="foot">Reference tool for qualified engineers. Calculations use an ideal-mixture Antoine model. Always verify against project specifications, manufacturer data, AGAC and Dubai Civil Defence requirements before use in design or commissioning.</p>
+</section>
+</main>
+
+<script src="js/scada-engine.js"></script>
+<script src="js/zip-export.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

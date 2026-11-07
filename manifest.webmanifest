@@ -1,0 +1,33 @@
+{
+  "id": "https://githubbest729.github.io/scada-LPG-Pumping-guide/",
+  "name": "LPG Pumping SCADA Field Guide",
+  "short_name": "LPG SCADA",
+  "description": "Field engineering guide for LPG pumping SCADA systems in Dubai, UAE.",
+  "start_url": "https://githubbest729.github.io/scada-LPG-Pumping-guide/",
+  "scope": "https://githubbest729.github.io/scada-LPG-Pumping-guide/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#2b3036",
+  "theme_color": "#2b3036",
+  "categories": ["utilities", "productivity", "business"],
+  "icons": [
+    {"src": "icons/icon-72.png", "sizes": "72x72", "type": "image/png"},
+    {"src": "icons/icon-96.png", "sizes": "96x96", "type": "image/png"},
+    {"src": "icons/icon-128.png", "sizes": "128x128", "type": "image/png"},
+    {"src": "icons/icon-144.png", "sizes": "144x144", "type": "image/png"},
+    {"src": "icons/icon-152.png", "sizes": "152x152", "type": "image/png"},
+    {"src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "icons/icon-384.png", "sizes": "384x384", "type": "image/png"},
+    {"src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png"},
+    {"src": "icons/icon-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable"},
+    {"src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ],
+  "screenshots": [
+    {"src": "screenshots/screenshot-narrow.png", "sizes": "540x960", "type": "image/png", "form_factor": "narrow", "label": "Calculators"},
+    {"src": "screenshots/screenshot-wide.png", "sizes": "1280x720", "type": "image/png", "form_factor": "wide", "label": "SCADA mimic"}
+  ],
+  "shortcuts": [
+    {"name": "Calculators", "url": "https://githubbest729.github.io/scada-LPG-Pumping-guide/#tools"},
+    {"name": "SCADA mimic", "url": "https://githubbest729.github.io/scada-LPG-Pumping-guide/#scada"}
+  ]
+}
