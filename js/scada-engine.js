@@ -31,8 +31,8 @@
   }
 
   // Vapor pressure of a propane/butane blend. volC3 = propane liquid volume %, T in C (clamped 10..60)
-  function vaporPressure(volC3, T) {
-    T = clamp(T, 10, 60, 40);
+  function vaporPressure(volC3, T, wide) {
+    T = clamp(T, wide ? 0 : 10, 60, 40);
     var b = blend(volC3);
     var p3 = pSat(C3, T), p4 = pSat(C4, T);
     var kpaAbs = b.x3 * p3 + (1 - b.x3) * p4;

@@ -1,6 +1,6 @@
 /* LPG SCADA Field Guide service worker */
-var CACHE = 'lpg-scada-v1.0.0';
-var ASSETS = ['./', 'index.html', 'offline.html', 'manifest.webmanifest', 'css/styles.css', 'js/app.js', 'js/scada-engine.js', 'js/zip-export.js',
+var CACHE = 'lpg-scada-v1.1.0';
+var ASSETS = ['./', 'index.html', 'offline.html', 'manifest.webmanifest', 'css/styles.css', 'js/app.js', 'js/scada-engine.js', 'js/visuals.js', 'js/panels.js', 'js/zip-export.js',
   'favicon.svg', 'favicon.ico', 'apple-touch-icon.png', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-192.png', 'icons/icon-maskable-512.png', 'images/og-image.png'];
 
 self.addEventListener('install', function (e) {

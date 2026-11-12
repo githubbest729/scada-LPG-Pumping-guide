@@ -34,7 +34,7 @@
   }
 
   /* ---------- tabs ---------- */
-  var TABS = ['design', 'plc', 'scada', 'tools'];
+  var TABS = ['design', 'plc', 'scada', 'visuals', 'tools'];
   function showTab(name) {
     if (TABS.indexOf(name) < 0) name = 'design';
     TABS.forEach(function (t) {
@@ -43,6 +43,7 @@
       $('#t-' + t)?.setAttribute('aria-selected', String(on));
     });
     if (name === 'scada') drawStrip();
+    if (name === 'visuals') window.LpgVisuals?.tick?.(S);
   }
   function wireTabs() {
     $$('.tabs [data-tab]').forEach(function (b) {
@@ -118,8 +119,10 @@
     var age = ts ? new Date(ts).toLocaleDateString(undefined, { day: 'numeric', month: 'short' }) : '';
     b.classList.toggle('off', !online);
     b.textContent = (online ? 'Online' : 'Offline') + (ready ? ' \u00b7 cached' + (age ? ' ' + age : '') : '');
+    b.title = 'v1.1.0 \u00b7 ' + (ready ? 'offline-ready' : 'not cached yet') + (age ? ' \u00b7 cache from ' + age : '');
   }
   function wireServiceWorker() {
+    $('#sync-badge')?.addEventListener('click', function () { flash($('#sync-badge')?.title || 'v1.1.0'); });
     window.addEventListener('online', updateSync);
     window.addEventListener('offline', updateSync);
     if (!('serviceWorker' in navigator) || !/^https?:$/.test(location.protocol)) { updateSync(); return; }
@@ -188,6 +191,7 @@
       '<dt>Pressure above vapor</dt><dd>' + f(r.pressureTerm, 2) + ' m (' + f(r.dpKpa, 1) + ' kPa)</dd>' +
       '<dt>Liquid head</dt><dd>+' + f(r.head, 2) + ' m</dd><dt>Friction loss</dt><dd>-' + f(r.hf, 2) + ' m</dd>' +
       '<dt>SG used</dt><dd>' + f(r.sg, 3) + '</dd></dl>';
+    window.LpgVisuals?.setMargin?.(r.margin);
   }
   var maBusy = false;
   function maRender(mA) {
@@ -243,13 +247,14 @@
 
   /* ---------- SCADA simulation ---------- */
   var SET = { lel1: 20, lel1Clr: 15, lel2: 40, pshh: 24, pshhClr: 22.5, lsll: 10, lsllClr: 12, lshPermissive: 15, dpsh: 9, dpshClr: 8.5, debounce: 3 };
-  var S = { pump: 'STOP', esd: false, estop: false, lel: 0, dp: 7, level: 65, amb: 40, blend: 50, cnt: { gas2: 0, pshh: 0, lsll: 0, dpsh: 0 }, al: {}, shelved: {}, hist: [], m: { ps: 0, pd: 0, flow: 0 } };
+  var S = { mode: 'MANUAL', pendingMode: '', pump: 'STOP', esd: false, estop: false, lel: 0, dp: 7, level: 65, amb: 40, blend: 50, cnt: { gas2: 0, pshh: 0, lsll: 0, dpsh: 0 }, al: {}, shelved: {}, hist: [], m: { ps: 0, pd: 0, flow: 0 } };
   var ALARMS = {
     gas1: { tag: 'GD-101', text: 'Gas Level 1', pri: 2 }, gas2: { tag: 'GD-101', text: 'Gas Level 2 trip', pri: 1 },
     pshh: { tag: 'PT-102', text: 'Discharge pressure high-high', pri: 1 }, lsll: { tag: 'LT-101', text: 'Tank level low-low', pri: 2 },
     dpsh: { tag: 'PDT-101', text: 'Pump differential high', pri: 2 }, esd: { tag: 'ESD', text: 'Emergency shutdown active', pri: 1 },
     estop: { tag: 'HS-001', text: 'E-STOP pushbutton pressed', pri: 1 }
   };
+  var LVL = { gas1: 1, dpsh: 2, lsll: 2, gas2: 3, pshh: 3, esd: 3, estop: 3 };
   var msgTimer = null;
   function msg(t) { setText('sim-msg', t); clearTimeout(msgTimer); msgTimer = setTimeout(function () { setText('sim-msg', ''); }, 5000); }
   function permissives() {
@@ -268,7 +273,7 @@
     var pd = ps + dp;
     var flow = running ? Math.max(0, 18 * (1 - Math.max(0, S.dp - 7) / 8)) : 0;
     if (running) { dp += (Math.random() - .5) * .1; pd += (Math.random() - .5) * .1; flow += (Math.random() - .5) * .3; }
-    S.m = { ps: ps, pd: pd, dp: dp, flow: Math.max(0, flow) };
+    S.m = { ps: ps, pd: pd, dp: dp, flow: Math.max(0, flow), amps: running ? Math.max(0, 20 + dp * 2.4 + (Math.random() - .5) * .8) : 0 };
     // deadband alarms
     if (S.lel >= SET.lel1) setAlarm('gas1', true); else if (S.lel < SET.lel1Clr) setAlarm('gas1', false);
     if (pd >= SET.pshh) setAlarm('pshh', true); else if (pd < SET.pshhClr) setAlarm('pshh', false);
@@ -287,6 +292,7 @@
     if (c.dpsh >= SET.debounce && S.pump === 'RUN') { S.pump = 'TRIP'; msg('Pump tripped: differential pressure high'); }
     setAlarm('esd', S.esd); setAlarm('estop', S.estop);
     if (S.esd && S.pump === 'RUN') S.pump = 'TRIP';
+    if (S.mode === 'AUTO' && S.pump === 'STOP' && permissives().every(function (p) { return p[1]; })) { S.pump = 'RUN'; msg('AUTO: pump started'); }
   }
   function latchEsd(why) { if (!S.esd) { S.esd = true; S.pump = 'TRIP'; msg('ESD latched: ' + ALARMS[why].text); } }
 
@@ -304,13 +310,17 @@
     $('#f-suction')?.setAttribute('class', 'flow ' + (running ? 'on' : ''));
     $('#f-disch')?.setAttribute('class', 'flow ' + (running ? 'on' : ''));
     $('#f-bypass')?.setAttribute('class', 'flow bypass ' + (running && S.dp > 8 ? 'on' : ''));
+    setText('m-lt', f(S.level, 0) + ' %');
+    var dur = Math.max(.25, 1.2 - m.pd / 30) + 's';
+    ['f-suction', 'f-disch'].forEach(function (id) { var el = $('#' + id); if (el) { el.style.animationDuration = dur; el.classList.toggle('hi', m.pd >= 20); } });
     var la = $('#la'); if (la) la.className = 'la ' + (running ? 'run' : (S.pump === 'TRIP' || S.esd ? 'trip' : ''));
     setText('la-state', st); setText('la-dp', f(m.dp, 1) + ' bar'); setText('la-flow', f(m.flow, 1) + ' m\u00b3/h'); setText('la-esd', S.esd ? 'TRIPPED' : 'NORMAL');
     setText('la-time', new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
     var pl = $('#perm-list'); if (pl) pl.innerHTML = permissives().map(function (p) { return '<li class="' + (p[1] ? 'ok' : 'no') + '">' + p[0] + '</li>'; }).join('');
     renderAlarms();
-    S.hist.push([m.ps, m.pd]); if (S.hist.length > 90) S.hist.shift();
+    S.hist.push([m.ps, m.pd, S.amb, m.amps || 0]); if (S.hist.length > 90) S.hist.shift();
     drawStrip();
+    window.LpgPanels?.hud?.(S); window.LpgVisuals?.tick?.(S);
   }
   function renderAlarms() {
     var box = $('#alarm-list'); if (!box) return;
@@ -318,7 +328,7 @@
     var shown = ids.filter(function (k) { return !S.shelved[k]; });
     box.innerHTML = shown.length ? shown.map(function (k) {
       var a = ALARMS[k]; var shape = a.pri === 1 ? 'oct' : (a.pri === 2 ? 'tri' : 'sq');
-      return '<div class="alarm p' + a.pri + '"><i class="shp ' + shape + '"></i><div class="tx"><b>' + a.tag + '</b> ' + a.text + '<small>Priority ' + a.pri + '</small></div>' +
+      return '<div class="alarm p' + a.pri + ' lvl' + (LVL[k] || 1) + '"><i class="shp ' + shape + '"></i><div class="tx"><b>' + a.tag + '</b> ' + a.text + '<small>Priority ' + a.pri + '</small></div>' +
         (a.pri > 1 ? '<button type="button" data-shelve="' + k + '">Shelve</button>' : '') + '</div>';
     }).join('') : '<div class="none">No active alarms</div>';
     setText('shelf-count', Object.keys(S.shelved).filter(function (k) { return S.shelved[k]; }).length + ' shelved');
@@ -330,12 +340,14 @@
     var cs = getComputedStyle(document.documentElement);
     var W = cv.width, H = cv.height; ctx.clearRect(0, 0, W, H);
     ctx.strokeStyle = cs.getPropertyValue('--line').trim() || '#888'; ctx.lineWidth = 1; ctx.strokeRect(.5, .5, W - 1, H - 1);
-    var max = 30; var n = S.hist.length; if (n < 2) return;
-    [[0, 1.5, cs.getPropertyValue('--muted').trim()], [1, 3, cs.getPropertyValue('--ink').trim()]].forEach(function (ch) {
-      ctx.beginPath(); ctx.strokeStyle = ch[2] || '#000'; ctx.lineWidth = ch[1];
-      S.hist.forEach(function (p, i) { var x = i / 89 * W; var y = H - 6 - Math.min(p[ch[0]], max) / max * (H - 12); if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y); });
+    var n = S.hist.length; if (n < 2) return;
+    var ink = cs.getPropertyValue('--ink').trim() || '#000', op = cs.getPropertyValue('--op').trim() || '#06c', warn = cs.getPropertyValue('--warn').trim() || '#c90', mut = cs.getPropertyValue('--muted').trim() || '#555';
+    [{ i: 0, max: 30, w: 1.5, d: [], c: mut }, { i: 1, max: 30, w: 3, d: [], c: ink }, { i: 2, max: 80, w: 2, d: [8, 5], c: op }, { i: 3, max: 80, w: 2, d: [2, 4], c: warn }].forEach(function (ch) {
+      ctx.beginPath(); ctx.strokeStyle = ch.c; ctx.lineWidth = ch.w; ctx.setLineDash(ch.d);
+      S.hist.forEach(function (p, i) { var x = i / 89 * W; var y = H - 6 - Math.min(p[ch.i], ch.max) / ch.max * (H - 12); if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y); });
       ctx.stroke();
     });
+    ctx.setLineDash([]);
   }
 
   var tickTimer = null;
@@ -348,32 +360,40 @@
     }, ms);
   }
 
-  function holdButton(el, cb) {
-    if (!el) return;
-    var fill = $('.hold-fill', el); var start = 0; var raf = 0; var done = false;
-    function frame() {
-      var p = Math.min(1, (performance.now() - start) / 1500);
-      if (fill) fill.style.width = (p * 100) + '%';
-      if (p >= 1) { done = true; cancelAnimationFrame(raf); if (fill) fill.style.width = '0'; cb(); return; }
-      raf = requestAnimationFrame(frame);
-    }
-    function down(e) { if (e && e.type === 'keydown' && (e.repeat || (e.key !== ' ' && e.key !== 'Enter'))) return; e?.preventDefault?.(); done = false; start = performance.now(); cancelAnimationFrame(raf); raf = requestAnimationFrame(frame); }
-    function up() { if (!done) { cancelAnimationFrame(raf); if (fill) fill.style.width = '0'; } }
-    el.addEventListener('pointerdown', down); el.addEventListener('pointerup', up); el.addEventListener('pointerleave', up); el.addEventListener('pointercancel', up);
-    el.addEventListener('keydown', down); el.addEventListener('keyup', up); el.addEventListener('contextmenu', function (e) { e.preventDefault(); });
-  }
+  function slide(el, cb) { window.LpgPanels?.slide?.(el, cb); }
   function wireSim() {
-    holdButton($('#btn-start'), function () {
+    slide($('#slide-start'), function () {
+      if (S.mode === 'REMOTE') { msg('Remote mode: start from SCADA'); return; }
       var bad = permissives().filter(function (p) { return !p[1]; });
       if (bad.length) { msg('Cannot start: ' + bad[0][0]); render(); return; }
       S.pump = 'RUN'; msg('Pump started'); render();
     });
-    holdButton($('#btn-reset'), function () {
+    slide($('#slide-reset'), function () {
       if (S.lel >= SET.lel2 || S.estop || S.cnt.pshh > 0) { msg('Cannot reset: clear the initiating condition first'); return; }
       S.esd = false; if (S.pump === 'TRIP') S.pump = 'STOP';
       Object.keys(S.cnt).forEach(function (k) { S.cnt[k] = 0; }); setAlarm('gas2', false); msg('ESD reset'); evaluate(); render();
     });
-    $('#btn-stop')?.addEventListener('click', function () { if (S.pump === 'RUN') { S.pump = 'STOP'; msg('Pump stopped'); } render(); });
+    $('#btn-stop')?.addEventListener('click', function () {
+      if (S.mode === 'REMOTE') { msg('Remote mode: stop from SCADA'); return; }
+      if (S.mode === 'AUTO') { S.mode = 'MANUAL'; setText('mode-now', 'MANUAL'); }
+      if (S.pump === 'RUN') { S.pump = 'STOP'; msg('Pump stopped'); } render();
+    });
+    $('#btn-remote')?.addEventListener('click', function () {
+      if (S.mode !== 'REMOTE') { msg('Switch to Remote mode first'); return; }
+      var bad = permissives().filter(function (p) { return !p[1]; });
+      if (bad.length) { msg('Remote start refused: ' + bad[0][0]); return; }
+      S.pump = 'RUN'; msg('Remote start accepted'); render();
+    });
+    $$('#mode-seg [data-mode]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        S.pendingMode = b.dataset.mode; $$('#mode-seg [data-mode]').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+        setText('mode-label', 'Slide and hold 1.5 s: apply ' + b.dataset.mode);
+      });
+    });
+    slide($('#slide-mode'), function () {
+      if (!S.pendingMode) { msg('Select a mode first'); return; }
+      S.mode = S.pendingMode; setText('mode-now', S.mode); msg('Mode ' + S.mode + ' applied'); evaluate(); render();
+    });
     var estopBtn = $('#btn-estop');
     estopBtn?.addEventListener('click', function () { S.estop = !S.estop; estopBtn.textContent = S.estop ? 'E-STOP: RELEASE' : 'E-STOP'; if (S.estop) latchEsd('estop'); evaluate(); render(); });
     $('#btn-unshelve')?.addEventListener('click', function () { S.shelved = {}; renderAlarms(); });
@@ -402,7 +422,9 @@
   /* ---------- single init ---------- */
   function init() {
     wireModes(); wireTabs(); wireShare(); wireInstall(); wireServiceWorker();
-    wireChecklist(); wireCode(); wireCalcs(); wireSim(); wireZip();
+    wireCode(); wireCalcs(); wireSim(); wireZip();
+    window.LpgPanels?.init({ E: E, S: S, store: store, flash: flash });
+    window.LpgVisuals?.init({ E: E, S: S, battery: function () { return root.dataset.battery === '1'; } });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();

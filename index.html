@@ -37,16 +37,18 @@
     <span class="badge" id="sync-badge" role="status" aria-live="polite">Online</span>
   </div>
   <div class="actions" role="toolbar" aria-label="Utilities">
-    <button type="button" id="btn-sun" aria-pressed="false" title="Direct sunlight mode">Sunlight</button>
+    <button type="button" id="btn-sun" aria-pressed="false" title="Direct sunlight mode">Sun</button>
     <button type="button" id="btn-battery" aria-pressed="false" title="Battery saver (AMOLED black)">Battery</button>
     <button type="button" id="btn-share" title="Share this guide">Share</button>
     <button type="button" id="btn-install" title="Install on your device">Install</button>
     <button type="button" id="btn-zip" title="Download project ZIP">ZIP</button>
+    <button type="button" id="btn-menu" aria-haspopup="dialog" aria-controls="drawer" title="Standards and quick actions">Menu</button>
   </div>
   <nav class="tabs" role="tablist" aria-label="Guide sections">
     <button role="tab" id="t-design" aria-controls="design" data-tab="design" aria-selected="true">Design</button>
     <button role="tab" id="t-plc" aria-controls="plc" data-tab="plc" aria-selected="false">PLC</button>
     <button role="tab" id="t-scada" aria-controls="scada" data-tab="scada" aria-selected="false">SCADA</button>
+    <button role="tab" id="t-visuals" aria-controls="visuals" data-tab="visuals" aria-selected="false">Visuals</button>
     <button role="tab" id="t-tools" aria-controls="tools" data-tab="tools" aria-selected="false">Tools</button>
   </nav>
 </header>
@@ -82,21 +84,27 @@
       <li><b>Equipment.</b> ATEX or IECEx certified Ex d / Ex e / Ex i gear matched to gas group IIA (propane, butane) and temperature class T2 or better. Dubai summer ambient up to 52 &deg;C must be inside the certificate ambient range.</li>
       <li><b>Codes.</b> NFPA 58 (LP-Gas Code) for storage, transfer and spacing. NFPA 54 (National Fuel Gas Code) for downstream piping and appliances, including high-rise commercial and residential distribution.</li>
     </ul>
-    <h4>DCD approval checklist (saved on this device)</h4>
+    <h4>DCD inspection workflow (saved on this device)</h4>
     <div class="progress" aria-hidden="true"><div id="dcd-bar"></div></div>
     <p class="note" id="dcd-count">0 of 10 complete</p>
-    <ul class="checks" id="dcd-list">
-      <li><label><input type="checkbox" data-k="1"> Hazardous area classification drawing signed by a competent engineer</label></li>
-      <li><label><input type="checkbox" data-k="2"> Ex equipment certificates (ATEX/IECEx) match zone, gas group, T-class</label></li>
-      <li><label><input type="checkbox" data-k="3"> P&amp;ID and cause and effect matrix submitted and approved</label></li>
-      <li><label><input type="checkbox" data-k="4"> Separation distances verified (tank to boundary, buildings, ignition sources)</label></li>
-      <li><label><input type="checkbox" data-k="5"> Fixed gas detectors at pump, manifold and low points; flame detectors covering the skid</label></li>
-      <li><label><input type="checkbox" data-k="6"> Fire water, deluge or cooling system and FAP interface tested</label></li>
-      <li><label><input type="checkbox" data-k="7"> Every ESDV stroke-tested, closing time recorded</label></li>
-      <li><label><input type="checkbox" data-k="8"> Loop checks and trip tests witnessed, records signed</label></li>
-      <li><label><input type="checkbox" data-k="9"> Earthing, bonding and lightning protection test certificates</label></li>
-      <li><label><input type="checkbox" data-k="10"> Emergency plan, signage and operator training records on site</label></li>
-    </ul>
+    <div id="dcd">
+      <details class="grp" open><summary>Documentation <span class="gp"></span></summary><ul class="checks">
+        <li><label><input type="checkbox" data-k="1"><span>Hazardous area classification drawing signed by a competent engineer</span></label></li>
+        <li><label><input type="checkbox" data-k="3"><span>P&amp;ID and cause and effect matrix submitted and approved</span></label></li>
+        <li><label><input type="checkbox" data-k="10"><span>Emergency plan, signage and operator training records on site</span></label></li>
+      </ul></details>
+      <details class="grp"><summary>Equipment and site <span class="gp"></span></summary><ul class="checks">
+        <li><label><input type="checkbox" data-k="2"><span>Ex equipment certificates (ATEX/IECEx) match zone, gas group, T-class</span></label></li>
+        <li><label><input type="checkbox" data-k="4"><span>Separation distances verified (tank to boundary, buildings, ignition sources)</span></label></li>
+        <li><label><input type="checkbox" data-k="5"><span>Fixed gas detectors at pump, manifold and low points; flame detectors covering the skid</span></label></li>
+        <li><label><input type="checkbox" data-k="6"><span>Fire water, deluge or cooling system and FAP interface tested</span></label></li>
+      </ul></details>
+      <details class="grp"><summary>Testing and handover <span class="gp"></span></summary><ul class="checks">
+        <li><label><input type="checkbox" data-k="7"><span>Every ESDV stroke-tested, closing time recorded</span></label></li>
+        <li><label><input type="checkbox" data-k="8"><span>Loop checks and trip tests witnessed, records signed</span></label></li>
+        <li><label><input type="checkbox" data-k="9"><span>Earthing, bonding and lightning protection test certificates</span></label></li>
+      </ul></details>
+    </div>
   </div>
 
   <div class="card">
@@ -135,7 +143,7 @@
 
   <div class="card">
     <h3>Safety interlocks and ESD cause and effect</h3>
-    <p class="note">Gas L1 = 20 %LEL alarm. Gas L2 = 40 %LEL trip. Hardwired trips are preferred over network signals. Scroll sideways inside the table.</p>
+    <p class="note">Gas L1 = 20 %LEL alarm. Gas L2 = 40 %LEL trip. Hardwired trips are preferred over network signals. Tap a cause to highlight its row. Tick Tested during field trip tests; the time is saved on this device.</p>
     <div class="scroll ce"><table>
       <thead><tr><th>Cause</th><th>Alarm</th><th>Pump trip</th><th>Suction ESDV</th><th>Discharge ESDV</th><th>Deluge</th><th>FAP</th></tr></thead>
       <tbody>
@@ -201,18 +209,20 @@
       <circle cx="150" cy="82" r="13" class="bubble"/><text x="150" y="80" class="tag" text-anchor="middle">PT</text><text x="150" y="90" class="tag" text-anchor="middle">101</text>
       <circle cx="280" cy="82" r="13" class="bubble"/><text x="280" y="80" class="tag" text-anchor="middle">PT</text><text x="280" y="90" class="tag" text-anchor="middle">102</text>
       <circle cx="110" cy="184" r="13" class="bubble"/><text x="110" y="182" class="tag" text-anchor="middle">GD</text><text x="110" y="192" class="tag" text-anchor="middle">101</text>
+      <circle cx="30" cy="70" r="13" class="bubble"/><text x="30" y="68" class="tag" text-anchor="middle">LT</text><text x="30" y="78" class="tag" text-anchor="middle">101</text><text x="30" y="52" class="val" text-anchor="middle" id="m-lt">65 %</text>
+      <circle cx="190" cy="176" r="13" class="bubble"/><text x="190" y="174" class="tag" text-anchor="middle">PDT</text><text x="190" y="184" class="tag" text-anchor="middle">101</text>
       <text x="150" y="68" class="val" text-anchor="middle" id="m-ps">0.0</text>
       <text x="280" y="68" class="val" text-anchor="middle" id="m-pd">0.0</text>
       <text x="110" y="210" class="val" text-anchor="middle" id="m-gd">0 %LEL</text>
       <text x="300" y="190" class="val" text-anchor="end" id="m-dp">DP 0.0 bar</text>
       <text x="300" y="206" class="val" text-anchor="end" id="m-esd">ESD NORMAL</text>
     </svg>
-    <div class="row sim-btns">
-      <button type="button" id="btn-start" class="hold primary" data-hold><span class="hold-fill"></span><span class="hold-text">Hold 1.5 s: Start pump</span></button>
-      <button type="button" id="btn-stop">Stop pump</button>
-      <button type="button" id="btn-estop" class="danger">E-STOP</button>
-      <button type="button" id="btn-reset" class="hold" data-hold><span class="hold-fill"></span><span class="hold-text">Hold 1.5 s: ESD reset</span></button>
-    </div>
+    <div class="row sim-btns"><button type="button" id="btn-stop">Stop pump</button><button type="button" id="btn-estop" class="danger">E-STOP</button><button type="button" id="btn-remote">Remote start (SCADA)</button></div>
+    <div class="slide" id="slide-start" role="button" tabindex="0" aria-label="Slide to start pump, hold 1.5 seconds"><div class="slide-fill"></div><div class="slide-prog"></div><div class="slide-thumb">&rsaquo;</div><span class="slide-text">Slide and hold 1.5 s: Start pump</span></div>
+    <div class="slide" id="slide-reset" role="button" tabindex="0" aria-label="Slide to reset ESD, hold 1.5 seconds"><div class="slide-fill"></div><div class="slide-prog"></div><div class="slide-thumb">&rsaquo;</div><span class="slide-text">Slide and hold 1.5 s: ESD reset</span></div>
+    <h4>Pump mode: <span id="mode-now">MANUAL</span></h4>
+    <div class="seg" id="mode-seg"><button type="button" data-mode="AUTO" aria-pressed="false">Auto</button><button type="button" data-mode="MANUAL" aria-pressed="true">Manual</button><button type="button" data-mode="REMOTE" aria-pressed="false">Remote</button></div>
+    <div class="slide" id="slide-mode" role="button" tabindex="0" aria-label="Slide to apply selected mode, hold 1.5 seconds"><div class="slide-fill"></div><div class="slide-prog"></div><div class="slide-thumb">&rsaquo;</div><span class="slide-text" id="mode-label">Select a mode, then slide</span></div>
     <p class="note" id="sim-msg" role="status"></p>
     <h4>Pre-start permissives</h4>
     <ul class="perm" id="perm-list"></ul>
@@ -222,9 +232,11 @@
       <label>Tank level: <b id="v-lvl">65</b> %<input type="range" id="s-lvl" min="0" max="100" step="1" value="65"></label>
       <label>Ambient: <b id="v-amb">40</b> &deg;C<input type="range" id="s-amb" min="10" max="60" step="1" value="40"></label>
     </div>
-    <canvas id="strip" width="640" height="120" aria-label="Pressure strip chart"></canvas>
-    <p class="note">Strip chart: suction (thin) and discharge (thick) pressure, bar g.</p>
+    <canvas id="strip" width="640" height="160" aria-label="Four channel strip chart"></canvas>
+    <p class="note legend"><span><i class="ln l1"></i>Suction bar</span><span><i class="ln l2"></i>Discharge bar</span><span><i class="ln l3"></i>Line temp &deg;C</span><span><i class="ln l4"></i>Motor amps</span></p>
   </div>
+
+  <div class="card hud" id="hud"><h3>Transmitter diagnostics HUD (PT-102)</h3><div id="hud-body"></div></div>
 
   <div class="card">
     <h3>Active alarms</h3>
@@ -262,6 +274,22 @@
   </div>
 </section>
 
+<!-- ============ TAB: VISUALS ============ -->
+<section id="visuals" class="panel" role="tabpanel" aria-labelledby="t-visuals" hidden>
+  <h2>Schematics and diagrams</h2>
+  <p class="lede">Interactive field diagrams. Drag the sliders to see how each device responds.</p>
+  <div class="card"><h3>Flame and gas detection coverage</h3><p class="sub">Hazardous zones around the manifold and detector response as gas builds.</p><div id="v-fgd"></div></div>
+  <div class="card"><h3>Tank strapping and level limits</h3><p class="sub">Gross observed volume for a horizontal bullet tank with alarm limits.</p><div id="v-tank"></div></div>
+  <div class="card"><h3>Differential pressure valve cycle</h3><p class="sub">How the bypass opens as discharge pressure rises above tank pressure.</p><div id="v-dpv"></div></div>
+  <div class="card"><h3>Pump curve comparator</h3><p class="sub">Two pump types against the same piping, with the live SCADA point.</p><div id="v-qh"></div></div>
+  <div class="card"><h3>Cavitation at the impeller</h3><p class="sub">Vapor bubbles appear as NPSH margin falls. 2D view.</p><div id="v-cav"></div></div>
+  <div class="card"><h3>Propane and butane vapor-liquid equilibrium</h3><p class="sub">Pressure against composition at a chosen temperature.</p><div id="v-vle"></div></div>
+  <div class="card"><h3>Motor control center single-line</h3><p class="sub">Soft starter and VFD feeders with the E-stop loop.</p><div id="v-sld"></div></div>
+  <div class="card"><h3>Fail-closed ESDV actuator</h3><p class="sub">Spring, piston and air supply. 2D animated.</p><div id="v-esdv"></div></div>
+  <div class="card"><h3>Analog loop check</h3><p class="sub">Test points from supply to PLC input with expected meter readings.</p><div id="v-loop"></div></div>
+  <div class="card"><h3>ESD shutdown sequence</h3><p class="sub">Timed closure of valves, pump trip and deluge.</p><div id="v-seq"></div></div>
+</section>
+
 <!-- ============ TAB 4: TOOLS ============ -->
 <section id="tools" class="panel" role="tabpanel" aria-labelledby="t-tools" hidden>
   <h2>Engineering calculators</h2>
@@ -273,7 +301,7 @@
     <div class="row"><button type="button" data-preset="vp" data-c3="50" data-t="52">Dubai summer, 50/50</button><button type="button" data-preset="vp" data-c3="80" data-t="15">Winter propane mix</button></div>
     <div class="fields">
       <label>Propane in blend (% volume, 0 to 100)<input type="number" inputmode="decimal" id="vp-c3" value="50" min="0" max="100" step="1"></label>
-      <label>Liquid temperature (&deg;C, 10.0 to 60.0)<input type="number" inputmode="decimal" id="vp-t" value="52" min="10" max="60" step="0.5"></label>
+      <label>Liquid temperature (&deg;C, 10.0 to 60.0)<input type="text" inputmode="none" data-keypad id="vp-t" value="52" min="10" max="60" step="0.5"></label>
     </div>
     <div class="result" id="vp-out" aria-live="polite"></div>
   </div>
@@ -285,10 +313,10 @@
     <p class="note">Preset NPSHr and piping values are illustrative. Enter the figures from your pump curve and line sizing.</p>
     <div class="fields">
       <label>Propane in blend (% volume)<input type="number" inputmode="decimal" id="np-c3" value="50" min="0" max="100" step="1"></label>
-      <label>Tank liquid temperature (&deg;C)<input type="number" inputmode="decimal" id="np-t" value="52" min="10" max="60" step="0.5"></label>
-      <label>Pump inlet liquid temperature (&deg;C)<input type="number" inputmode="decimal" id="np-tl" value="52.3" min="10" max="60" step="0.1"></label>
-      <label>Liquid head above pump (m)<input type="number" inputmode="decimal" id="np-h" value="3" min="0" max="50" step="0.1"></label>
-      <label>Suction line friction loss (m)<input type="number" inputmode="decimal" id="np-hf" value="0.5" min="0" max="50" step="0.1"></label>
+      <label>Tank liquid temperature (&deg;C)<input type="text" inputmode="none" data-keypad id="np-t" value="52" min="10" max="60" step="0.5"></label>
+      <label>Pump inlet liquid temperature (&deg;C)<input type="text" inputmode="none" data-keypad id="np-tl" value="52.3" min="10" max="60" step="0.1"></label>
+      <label>Liquid head above pump (m)<input type="text" inputmode="none" data-keypad id="np-h" value="3" min="0" max="50" step="0.1"></label>
+      <label>Suction line friction loss (m)<input type="text" inputmode="none" data-keypad id="np-hf" value="0.5" min="0" max="50" step="0.1"></label>
       <label>NPSH required, from pump curve (m)<input type="number" inputmode="decimal" id="np-r" value="0.8" min="0" max="20" step="0.1"></label>
       <label>Specific gravity (0.500 to 2.000, blank = auto)<input type="number" inputmode="decimal" id="np-sg" value="" min="0.5" max="2" step="0.001" placeholder="auto"></label>
       <label>Thermal expansion coefficient (0.0001 to 0.0025 per &deg;C)<input type="number" inputmode="decimal" id="np-b" value="0.0020" min="0.0001" max="0.0025" step="0.0001"></label>
@@ -315,7 +343,17 @@
 </section>
 </main>
 
+<div id="scrim" hidden></div>
+<aside id="drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title" hidden>
+  <div class="dr-head"><h2 id="drawer-title">Field reference</h2><button type="button" id="drawer-close">Close</button></div>
+  <div class="dr-tabs"><button type="button" data-dt="std" aria-selected="true">Standards</button><button type="button" data-dt="quick" aria-selected="false">Quick actions</button></div>
+  <div id="dr-std" class="dr-body"></div><div id="dr-quick" class="dr-body" hidden></div>
+</aside>
+<div id="keypad" role="dialog" aria-label="Number pad" hidden></div>
+
 <script src="js/scada-engine.js"></script>
+<script src="js/visuals.js"></script>
+<script src="js/panels.js"></script>
 <script src="js/zip-export.js"></script>
 <script src="js/app.js"></script>
 </body>

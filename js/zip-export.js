@@ -1,7 +1,7 @@
 /* LPG SCADA Field Guide - in-browser ZIP generator. Exposes window.LpgZip only; never runs init. */
 (function (root) {
   'use strict';
-  var FILES = ['index.html', 'manifest.webmanifest', 'sw.js', 'offline.html', 'robots.txt', 'favicon.svg', 'css/styles.css', 'js/app.js', 'js/scada-engine.js', 'js/zip-export.js'];
+  var FILES = ['index.html', 'manifest.webmanifest', 'sw.js', 'offline.html', 'robots.txt', 'favicon.svg', 'css/styles.css', 'js/app.js', 'js/scada-engine.js', 'js/visuals.js', 'js/panels.js', 'js/zip-export.js'];
   var JSZIP_URL = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
 
   function canvas(w, h) { var c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
